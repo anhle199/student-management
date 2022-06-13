@@ -1,12 +1,12 @@
-import {inject} from '@loopback/core';
-import {repository, Filter} from '@loopback/repository';
-import {AccountRepository, StudentRepository} from '../repositories';
-import {requestBody, getModelSchemaRef, post, get, HttpErrors, param} from '@loopback/rest';
-import {Account} from '../models';
-import {hash, genSalt} from 'bcryptjs';
 import {TokenServiceBindings} from '@loopback/authentication-jwt';
-import {JWTService, AccountService, Credentials} from '../services';
+import {inject} from '@loopback/core';
+import {Filter, repository} from '@loopback/repository';
+import {get, getModelSchemaRef, HttpErrors, param, post, requestBody} from '@loopback/rest';
+import {genSalt, hash} from 'bcryptjs';
 import {AccountServiceBindings} from '../keys';
+import {Account} from '../models';
+import {AccountRepository, StudentRepository} from '../repositories';
+import {AccountService, Credentials, JWTService} from '../services';
 
 export class AccountController {
   constructor(
@@ -16,6 +16,7 @@ export class AccountController {
     @inject(AccountServiceBindings.ACCOUNT_SERVICE) public accountService: AccountService,
   ) {}
 
+  // TODO: omit `password` field from Account instance.
   @post('/accounts')
   async create(
     @requestBody({
@@ -32,20 +33,18 @@ export class AccountController {
     account: Account
   ): Promise<Account> {
     // Check existence of student by `studentId`.
-    if ("studentId" in account) {
-      const isExistedStudent = await this.studentRepository.exists(account.studentId);
+    const {studentId, username, password} = account
+    if (studentId) {
+      const isExistedStudent = await this.studentRepository.exists(studentId);
       if (!isExistedStudent) {
-        throw new HttpErrors.NotFound("User not found.");
+        throw new HttpErrors.NotFound("Student not found.");
       }
     }
 
     // Validate username and password
-    this.accountService.validateCredentials({
-      username: account.username,
-      password: account.password
-    });
+    this.accountService.validateCredentials({username, password});
 
-    account.password = await hash(account.password, await genSalt());
+    account.password = await hash(password, await genSalt());
     return this.accountRepository.create(account);
   }
 
@@ -67,30 +66,6 @@ export class AccountController {
     })
     credentials: Credentials
   ): Promise<{token: string}> {
-    // const account = await this.accountRepository.findOne({where: {username: loginInfo.username}})
-    // if (account === null || !bcrypt.compareSync(loginInfo.password, account.password)) {
-    //   throw new HttpErrors.Forbidden('Username or password does not match.')
-    // }
-
-    // // create access token
-    // const token = jwt.sign(
-    //   {username: account.username}, // data
-    //   'secret-key',                 // secret key
-    //   {expiresIn: '0.5h'}
-    // )
-
-    // const expiredAt = new Date()
-    // expiredAt.setMinutes(expiredAt.getMinutes() + 30);
-
-    // this.response
-    //   .status(200)
-    //   .send({
-    //     token: token,
-    //     expiredAt: expiredAt.valueOf(),
-    //   })
-
-    // return this.response
-
     const account = await this.accountService.verifyCredentials(credentials);
     const userProfile = this.accountService.convertToUserProfile(account);
     const token = await this.jwtService.generateToken(userProfile);

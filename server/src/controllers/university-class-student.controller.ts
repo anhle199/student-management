@@ -1,5 +1,5 @@
 import {repository, Count, Filter} from '@loopback/repository';
-import {param, patch, HttpErrors, get, getModelSchemaRef, requestBody, getJsonSchemaRef, getFieldsJsonSchemaFor, getJsonSchema} from '@loopback/rest';
+import {param, patch, HttpErrors, get, getModelSchemaRef, requestBody, getJsonSchemaRef, getFieldsJsonSchemaFor, getJsonSchema, del} from '@loopback/rest';
 import {UniversityClassRepository, StudentRepository} from '../repositories';
 import {Student} from '../models/student.model';
 

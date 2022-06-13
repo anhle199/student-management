@@ -6,10 +6,8 @@ import {TokenServiceBindings} from '@loopback/authentication-jwt';
 import {HttpErrors} from '@loopback/rest';
 
 export class JWTService implements TokenService {
-  constructor(
-    @inject(TokenServiceBindings.TOKEN_SECRET) protected jwtSecretKey: string,
-    @inject(TokenServiceBindings.TOKEN_EXPIRES_IN) protected jwtExpiresIn: string,
-  ) {}
+  @inject(TokenServiceBindings.TOKEN_SECRET) protected jwtSecretKey: string;
+  @inject(TokenServiceBindings.TOKEN_EXPIRES_IN) protected jwtExpiresIn: string;
 
   async verifyToken(token: string): Promise<UserProfile> {
     if (!token) {
@@ -19,9 +17,10 @@ export class JWTService implements TokenService {
     try {
       const decodedToken: any = jwt.verify(token, this.jwtSecretKey);
       const userProfile = {
-        [securityId]: decodedToken[securityId],
+        [securityId]: decodedToken['id'],
         id: decodedToken['id'],
         username: decodedToken['username'],
+        role: decodedToken['role'],
       }
 
       return userProfile;
@@ -41,6 +40,7 @@ export class JWTService implements TokenService {
     const userDataForToken = {
       id: userProfile[securityId],
       username: userProfile.username,
+      role: userProfile.role,
     };
 
     try {

@@ -24,7 +24,7 @@ export class Student extends Entity {
   })
   phone?: string;
 
-  @belongsTo(() => UniversityClass)
+  @belongsTo(() => UniversityClass)//, {}, {jsonSchema: {nullable: true},})
   universityClassId: number;
 
   @hasOne(() => Account)

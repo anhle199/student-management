@@ -6,7 +6,7 @@ import {UniversityClassRepository} from '../repositories';
 export class UniversityClassController {
   constructor(
     @repository(UniversityClassRepository)
-    public universityClassRepository: UniversityClassRepository
+    public universityClassRepository: UniversityClassRepository,
   ) {}
 
   @post('/classes')
@@ -31,6 +31,7 @@ export class UniversityClassController {
     })
     universityClass: Omit<UniversityClass, 'id'>
   ): Promise<UniversityClass> {
+    console.log(universityClass)
     // Find by class name ('name' property).
     // Returns an UniversityClass object if the given class name has already existed;
     // otherwise returns null
@@ -92,7 +93,6 @@ export class UniversityClassController {
     return this.universityClassRepository.findById(id, filter);
   }
 
-  // TODO: Check foreign key `universityClassId` when updating this property.
   @patch('/classes/{id}')
   @response(204, {
     description: 'Updates an existing UniversityClass with property/name pairs.',
@@ -102,22 +102,22 @@ export class UniversityClassController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(UniversityClass, {partial: true})
+          schema: getModelSchemaRef(UniversityClass, {
+            partial: true,
+            exclude: ['id'],
+          })
         },
       },
-    }) universityClass: UniversityClass,
+    }) universityClass: Omit<UniversityClass, 'id'>
   ): Promise<void> {
     if ('name' in universityClass) {
-      const itemWithClassName = await this.universityClassRepository.findOne({where: {name: universityClass.name}});
+      // find a class by `name`
+      const foundClass = await this.universityClassRepository.findOne({where: {name: universityClass.name}});
 
       // The given class name has already existed.
-      if (itemWithClassName !== null && itemWithClassName?.id !== id) {
-        if (itemWithClassName?.id !== id) {
-          throw new HttpErrors.Conflict("This class name has already existed");
-        }
+      if (foundClass !== null && foundClass.id !== id) {
+        throw new HttpErrors.Conflict("This class name has already existed");
       }
-
-      delete universityClass?.id;
 
       await this.universityClassRepository.updateById(id, universityClass);
     }
@@ -129,6 +129,7 @@ export class UniversityClassController {
     description: 'Delete a class by the given class id.'
   })
   async deleteById(@param.path.number('id') id: number): Promise<void> {
-    await this.universityClassRepository.deleteById(id);
+    await this.universityClassRepository.students(id).patch({universityClassId: undefined})
+    // await this.universityClassRepository.deleteById(id);
   }
 }

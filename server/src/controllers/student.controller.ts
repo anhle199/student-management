@@ -3,6 +3,8 @@ import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody
 import {Student} from '../models/student.model';
 import {StudentRepository} from '../repositories';
 import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization'
+import {UserRole} from '../models';
 
 export class StudentController {
   constructor(
@@ -55,6 +57,7 @@ export class StudentController {
   }
 
   @authenticate('jwt')
+  @authorize({allowedRoles: [UserRole.MONITOR]})
   @get('/students')
   @response(200, {
     description: "Returns a list of students.",

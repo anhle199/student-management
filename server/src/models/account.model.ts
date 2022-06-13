@@ -1,6 +1,11 @@
 import {Entity, model, property, belongsTo} from '@loopback/repository';
 import {Student} from './student.model';
 
+export enum UserRole {
+  MEMBER = "MEMBER",
+  MONITOR = "MONITOR",
+}
+
 @model()
 export class Account extends Entity {
   @property({
@@ -22,6 +27,13 @@ export class Account extends Entity {
     //hidden: true,
   })
   password: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {enum: Object.values(UserRole)},
+  })
+  role: UserRole;
 
   @belongsTo(() => Student)
   studentId: string;

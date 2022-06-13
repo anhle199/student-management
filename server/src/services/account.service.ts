@@ -35,12 +35,13 @@ export class AccountService implements UserService<Account, Credentials> {
     return foundAccount;
   }
 
-  convertToUserProfile(user: Account): UserProfile {
-    const userId = user.id !== undefined ? user.id!.toString() : "";
+  convertToUserProfile(account: Account): UserProfile {
+    const accountId = account.id !== undefined ? account.id!.toString() : "";
     return {
-      [securityId]: userId,
-      id: userId,
-      username: user.username,
+      [securityId]: accountId,
+      id: accountId,
+      username: account.username,
+      role: account.role,
     };
   }
 }

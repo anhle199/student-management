@@ -14,14 +14,13 @@ import {MySequence} from './sequence';
 import {AuthenticationComponent} from '@loopback/authentication';
 import {
   JWTAuthenticationComponent,
-  SECURITY_SCHEME_SPEC,
-  UserServiceBindings,
   TokenServiceBindings,
 } from '@loopback/authentication-jwt';
-import {DbDataSource} from './datasources';
 import {JWTService} from './services';
 import {AccountService} from './services/account.service';
 import {TokenServiceConstants, AccountServiceBindings} from './keys';
+import {AuthorizationOptions, AuthorizationDecision, AuthorizationComponent, AuthorizationTags} from '@loopback/authorization';
+import {AuthorizationProvider} from './providers';
 // ----------------------------------------
 
 export {ApplicationConfig};
@@ -65,9 +64,22 @@ export class StudentManagementApplication extends BootMixin(
     // Override token service
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
     this.bind(TokenServiceBindings.TOKEN_SECRET).to(TokenServiceConstants.TOKEN_SECRET_VALUE);
-    this.bind(TokenServiceBindings.TOKEN_EXPIRES_IN).to(TokenServiceConstants.TOKEN_SECRET_VALUE);
+    this.bind(TokenServiceBindings.TOKEN_EXPIRES_IN).to(TokenServiceConstants.TOKEN_EXPIRES_IN_VALUE);
 
     // Override user service
     this.bind(AccountServiceBindings.ACCOUNT_SERVICE).toClass(AccountService);
+
+    // AUTHORIZATION
+    const authorizationOptions: AuthorizationOptions = {
+      precedence: AuthorizationDecision.DENY,
+      defaultDecision: AuthorizationDecision.DENY,
+    };
+
+    const binding = this.component(AuthorizationComponent);
+    this.configure(binding.key).to(authorizationOptions);
+
+    this.bind('providers.authorizer.provider')
+      .toProvider(AuthorizationProvider)
+      .tag(AuthorizationTags.AUTHORIZER);
   }
 }
