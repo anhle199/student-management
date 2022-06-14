@@ -1,7 +1,11 @@
-import {repository, Count, Filter} from '@loopback/repository';
-import {param, patch, HttpErrors, get, getModelSchemaRef, requestBody, getJsonSchemaRef, getFieldsJsonSchemaFor, getJsonSchema, del} from '@loopback/rest';
+import {repository, Filter} from '@loopback/repository';
+import {param, HttpErrors, get} from '@loopback/rest';
 import {UniversityClassRepository, StudentRepository} from '../repositories';
 import {Student} from '../models/student.model';
+import {authenticate} from '@loopback/authentication';
+import {AuthenticationStrategyConstants} from '../keys';
+import {authorize} from '@loopback/authorization';
+import {RoleEnum} from '../models';
 
 export class ClassStudentController {
   constructor(
@@ -11,7 +15,11 @@ export class ClassStudentController {
     protected studentRepository: StudentRepository,
   ) {}
 
-
+  // TODO:
+  // - student monitor must belongs to the class with the given universityClassId.
+  // - teacher must teach the class with the given universityClassId.
+  @authenticate(AuthenticationStrategyConstants.JWT)
+  @authorize({allowedRoles: [RoleEnum.TEACHER, RoleEnum.STUDENT_MONITOR]})
   @get('/classes/{universityClassId}/students')
   async getAllStudents(
     @param.path.number('universityClassId') universityClassId: number,

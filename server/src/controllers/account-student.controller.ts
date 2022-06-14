@@ -1,12 +1,19 @@
-import {repository} from '@loopback/repository';
+import {model, property, repository} from '@loopback/repository';
 import {StudentRepository, AccountRepository} from '../repositories';
-import {patch, param, requestBody, HttpErrors} from '@loopback/rest';
-import {Account} from '../models';
+import {patch, param, requestBody, HttpErrors, getModelSchemaRef} from '@loopback/rest';
+import {Account, RoleEnum} from '../models';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {AuthenticationStrategyConstants} from '../keys';
 
-interface AssignedStudentRequest {
+@model()
+class AssignedStudentRequest {
+  @property({type: 'string', required: true})
   studentId: string
 }
 
+@authenticate(AuthenticationStrategyConstants.JWT)
+@authorize({allowedRoles: [RoleEnum.ADMIN]})
 export class AccountStudentController {
   constructor(
     @repository('StudentRepository') protected studentRepository: StudentRepository,
@@ -19,13 +26,7 @@ export class AccountStudentController {
     @requestBody({
       content: {
         'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              studentId: {type: 'string'},
-            },
-            required: ['studentId'],
-          },
+          schema: getModelSchemaRef(AssignedStudentRequest)
         },
       },
     })
@@ -38,6 +39,6 @@ export class AccountStudentController {
       throw new HttpErrors.NotFound('Account or student does not exist.')
     }
 
-    this.accountRepository.updateById(accountId, {studentId: studentInfo.studentId})
+    await this.accountRepository.updateById(accountId, {studentId: studentInfo.studentId})
   }
 }

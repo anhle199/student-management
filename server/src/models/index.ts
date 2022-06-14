@@ -5,3 +5,5 @@ export * from './course.model';
 export * from './role-mapping.model';
 export * from './role.model';
 export * from './account.model';
+export * from './credentials/sign-up.credentials';
+export * from './credentials/sign-in.credentials';

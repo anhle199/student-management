@@ -27,7 +27,7 @@ export class AuthorizationProvider implements Provider<Authorizer> {
     let decision = this.defaultDecision;
 
     // Check allowed roles
-    for (let role of userRoles) {
+    for (const role of userRoles) {
       if (allowedRoles?.includes(role.name)) {
         decision = AuthorizationDecision.ALLOW;
         break;

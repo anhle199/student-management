@@ -15,7 +15,9 @@ export class JWTService implements TokenService {
     }
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const decodedToken: any = jwt.verify(token, this.jwtSecretKey);
+
       const userProfile = {
         [securityId]: decodedToken['id'],
         id: decodedToken['id'],

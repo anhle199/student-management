@@ -1,8 +1,14 @@
-import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {Filter, FilterExcludingWhere, repository} from '@loopback/repository';
 import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody, response} from '@loopback/rest';
+import {AuthenticationStrategyConstants} from '../keys';
+import {RoleEnum} from '../models';
 import {UniversityClass} from '../models/university-class.model';
 import {UniversityClassRepository} from '../repositories';
 
+@authenticate(AuthenticationStrategyConstants.JWT)
+@authorize({allowedRoles: [RoleEnum.ADMIN]})
 export class UniversityClassController {
   constructor(
     @repository(UniversityClassRepository)
@@ -46,19 +52,6 @@ export class UniversityClassController {
     return this.universityClassRepository.create(universityClass);
   }
 
-  @get('/classes/count')
-  @response(200, {
-    description: 'Returns number of existing classes.',
-    content: {
-      'application/json': {schema: CountSchema}
-    },
-  })
-  async count(
-    @param.where(UniversityClass) where?: Where<UniversityClass>
-  ): Promise<Count> {
-    return this.universityClassRepository.count(where);
-  }
-
   @get('/classes')
   @response(200, {
     description: 'Gets a list of classes (all).',
@@ -77,6 +70,8 @@ export class UniversityClassController {
     return this.universityClassRepository.find(filter);
   }
 
+  // TODO: teacher must teach the class with the given universityClassId.
+  @authorize({allowedRoles: [RoleEnum.ADMIN, RoleEnum.TEACHER]})
   @get('/classes/{id}')
   @response(200, {
     description: 'Gets a specific class by the given class ID.',
@@ -93,6 +88,8 @@ export class UniversityClassController {
     return this.universityClassRepository.findById(id, filter);
   }
 
+  // TODO: teacher must teach the class with the given universityClassId.
+  @authorize({allowedRoles: [RoleEnum.ADMIN, RoleEnum.TEACHER]})
   @patch('/classes/{id}')
   @response(204, {
     description: 'Updates an existing UniversityClass with property/name pairs.',

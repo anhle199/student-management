@@ -3,7 +3,9 @@ import {RoleMapping} from './role-mapping.model';
 import {Role} from './role.model';
 import {Student} from './student.model';
 
-export enum UserRole {
+export enum RoleEnum {
+  ADMIN = "ADMIN",
+  TEACHER = "TEACHER",
   STUDENT_MEMBER = "STUDENT_MEMBER",
   STUDENT_MONITOR = "STUDENT_MONITOR",
 }
@@ -26,7 +28,7 @@ export class Account extends Entity {
   @property({
     type: 'string',
     required: true,
-    //hidden: true,
+    hidden: true,
   })
   password: string;
 

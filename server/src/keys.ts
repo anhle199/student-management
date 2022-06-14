@@ -1,7 +1,6 @@
 import {BindingKey} from '@loopback/core';
 import {UserService} from '@loopback/authentication';
-import {Account} from './models';
-import {Credentials} from './services';
+import {Account, SignInCredentials} from './models';
 
 export namespace TokenServiceConstants {
   export const TOKEN_SECRET_VALUE = "secret-key";
@@ -10,7 +9,7 @@ export namespace TokenServiceConstants {
 
 export namespace AccountServiceBindings {
   export const ACCOUNT_SERVICE = BindingKey.create<
-    UserService<Account, Credentials>
+    UserService<Account, SignInCredentials>
   >('services.account.service');
 }
 
@@ -21,4 +20,8 @@ export namespace DataSourceBindings {
 export namespace AuthorizationBindings {
   export const DEFAULT_DECISION = "authorization.default-decision";
   export const AUTHORIZER_PROVIDER = "providers.authorizer.provider";
+}
+
+export namespace AuthenticationStrategyConstants {
+  export const JWT = "jwt";
 }
