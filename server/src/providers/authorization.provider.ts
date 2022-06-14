@@ -14,6 +14,10 @@ export class AuthorizationProvider implements Provider<Authorizer> {
   ): Promise<AuthorizationDecision> {
     const userRole = authorizationContext.principals[0].role;
     const allowedRoles = metadata.allowedRoles;
+    // console.log({principals: authorizationContext.principals})
+    // console.log({firstPrincipal: authorizationContext.principals[0]})
+    // console.log({userRole})
+    // console.log({allowedRoles})
     return allowedRoles?.includes(userRole) ? AuthorizationDecision.ALLOW : AuthorizationDecision.DENY;
   }
 

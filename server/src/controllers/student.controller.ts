@@ -56,8 +56,8 @@ export class StudentController {
     return this.studentRepository.create(student);
   }
 
-  @authenticate('jwt')
-  @authorize({allowedRoles: [UserRole.MONITOR]})
+  // @authenticate('jwt')
+  // @authorize({allowedRoles: [UserRole.MEMBER]})
   @get('/students')
   @response(200, {
     description: "Returns a list of students.",

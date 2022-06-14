@@ -7,7 +7,7 @@ export class UniversityClassController {
   constructor(
     @repository(UniversityClassRepository)
     public universityClassRepository: UniversityClassRepository,
-  ) {}
+  ) { }
 
   @post('/classes')
   @response(201, {
@@ -129,7 +129,23 @@ export class UniversityClassController {
     description: 'Delete a class by the given class id.'
   })
   async deleteById(@param.path.number('id') id: number): Promise<void> {
-    await this.universityClassRepository.students(id).patch({universityClassId: undefined})
-    // await this.universityClassRepository.deleteById(id);
+    const isExistedClass = await this.universityClassRepository.exists(id)
+    if (!isExistedClass) {
+      throw new HttpErrors.NotFound("University class not found.");
+    }
+
+    try {
+      // only executable on PostgreSQL.
+      // returns object: { affectedRows: number, count: number, rows: [] }.
+      await this.universityClassRepository.execute(
+        "update student set universityclassid = null where universityclassid = $1",
+        [id],
+      )
+
+      await this.universityClassRepository.deleteById(id);
+    } catch (error) {
+      console.log({endpoint: `/classes/${id}`, error})
+      throw error;
+    }
   }
 }

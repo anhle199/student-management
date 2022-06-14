@@ -1,6 +1,6 @@
-import {belongsTo, Entity, model, property, hasOne} from '@loopback/repository';
-import {UniversityClass} from './university-class.model';
+import {belongsTo, Entity, hasOne, model, property} from '@loopback/repository';
 import {Account} from './account.model';
+import {UniversityClass} from './university-class.model';
 
 @model()
 export class Student extends Entity {
@@ -24,7 +24,7 @@ export class Student extends Entity {
   })
   phone?: string;
 
-  @belongsTo(() => UniversityClass)//, {}, {jsonSchema: {nullable: true},})
+  @belongsTo(() => UniversityClass)
   universityClassId: number;
 
   @hasOne(() => Account)
