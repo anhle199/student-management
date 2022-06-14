@@ -9,6 +9,7 @@ import {DbDataSource} from '../datasources';
 import {Student, StudentRelations, UniversityClass, Account} from '../models';
 import {UniversityClassRepository} from './university-class.repository';
 import {AccountRepository} from './account.repository';
+import {DataSourceBindings} from '../keys';
 
 export class StudentRepository extends DefaultCrudRepository<
   Student,
@@ -23,7 +24,7 @@ export class StudentRepository extends DefaultCrudRepository<
   public readonly account: HasOneRepositoryFactory<Account, typeof Student.prototype.id>;
 
   constructor(
-    @inject('datasources.db') dataSource: DbDataSource,
+    @inject(DataSourceBindings.DATA_SOURCE) dataSource: DbDataSource,
     @repository.getter('UniversityClassRepository')
     protected universityClassRepositoryGetter: Getter<UniversityClassRepository>,
     @repository.getter('AccountRepository')

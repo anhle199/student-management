@@ -1,4 +1,6 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {Entity, model, property, belongsTo, hasMany} from '@loopback/repository';
+import {RoleMapping} from './role-mapping.model';
+import {Role} from './role.model';
 import {Student} from './student.model';
 
 export enum UserRole {
@@ -28,15 +30,11 @@ export class Account extends Entity {
   })
   password: string;
 
-  @property({
-    type: 'string',
-    required: true,
-    jsonSchema: {enum: Object.values(UserRole)},
-  })
-  role: UserRole;
-
   @belongsTo(() => Student)
   studentId: string;
+
+  @hasMany(() => Role, {through: {model: () => RoleMapping}})
+  roles: Role[];
 
   constructor(data?: Partial<Account>) {
     super(data);

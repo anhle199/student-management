@@ -3,6 +3,7 @@ import {Course, CourseRelations, Student, Enrollment} from '../models';
 import {inject, Getter} from '@loopback/core';
 import {DbDataSource} from '../datasources';
 import {EnrollmentRepository, StudentRepository} from '.';
+import {DataSourceBindings} from '../keys';
 
 export class CourseRepository extends DefaultCrudRepository<
   Course,
@@ -13,11 +14,11 @@ export class CourseRepository extends DefaultCrudRepository<
   public readonly hasManyStudentsThroughEnrollmentRelationName = "students";
   public readonly students: HasManyThroughRepositoryFactory<
     Student, typeof Student.prototype.id,
-    Enrollment, typeof Enrollment.prototype.id
+    Enrollment, typeof Course.prototype.id
   >;
 
   constructor(
-    @inject('datasources.db') dataSource: DbDataSource,
+    @inject(DataSourceBindings.DATA_SOURCE) dataSource: DbDataSource,
     @repository.getter('StudentRepository') studentRepositoryGetter: Getter<StudentRepository>,
     @repository.getter('EnrollmentRepository') enrollmentRepositoryGetter: Getter<EnrollmentRepository>,
   ) {

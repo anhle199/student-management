@@ -3,6 +3,7 @@ import {UniversityClass, UniversityClassRelations, Student} from '../models';
 import {DbDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {StudentRepository} from './student.repository';
+import {DataSourceBindings} from '../keys';
 
 export class UniversityClassRepository extends DefaultCrudRepository<
   UniversityClass,
@@ -14,7 +15,7 @@ export class UniversityClassRepository extends DefaultCrudRepository<
   public readonly students: HasManyRepositoryFactory<Student, typeof UniversityClass.prototype.id>;
 
   constructor(
-    @inject('datasources.db') dataSource: DbDataSource,
+    @inject(DataSourceBindings.DATA_SOURCE) dataSource: DbDataSource,
     @repository.getter('StudentRepository') protected studentRepositoryGetter: Getter<StudentRepository>,
   ) {
     super(UniversityClass, dataSource);

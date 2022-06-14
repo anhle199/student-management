@@ -13,3 +13,7 @@ export namespace AccountServiceBindings {
     UserService<Account, Credentials>
   >('services.account.service');
 }
+
+export namespace DataSourceBindings {
+  export const DATA_SOURCE = "datasources.db";
+}

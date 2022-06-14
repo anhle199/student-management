@@ -41,7 +41,7 @@ export class AccountService implements UserService<Account, Credentials> {
       [securityId]: accountId,
       id: accountId,
       username: account.username,
-      role: account.role,
+      // role: account.role,
     };
   }
 }

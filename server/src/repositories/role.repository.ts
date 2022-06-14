@@ -1,0 +1,15 @@
+import {inject} from '@loopback/core';
+import {DefaultCrudRepository} from '@loopback/repository';
+import {DbDataSource} from '../datasources';
+import {DataSourceBindings} from '../keys';
+import {Role, RoleRelations} from '../models';
+
+export class RoleRepository extends DefaultCrudRepository<
+  Role,
+  typeof Role.prototype.id,
+  RoleRelations
+> {
+  constructor(@inject(DataSourceBindings.DATA_SOURCE) dataSource: DbDataSource) {
+    super(Role, dataSource);
+  }
+}
