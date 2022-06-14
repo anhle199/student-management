@@ -17,3 +17,8 @@ export namespace AccountServiceBindings {
 export namespace DataSourceBindings {
   export const DATA_SOURCE = "datasources.db";
 }
+
+export namespace AuthorizationBindings {
+  export const DEFAULT_DECISION = "authorization.default-decision";
+  export const AUTHORIZER_PROVIDER = "providers.authorizer.provider";
+}

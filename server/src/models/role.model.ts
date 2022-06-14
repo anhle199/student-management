@@ -13,7 +13,7 @@ export class Role extends Entity {
     type: 'string',
     required: true,
   })
-  name: number;
+  name: string;
 
   constructor(data?: Partial<Role>) {
     super(data);

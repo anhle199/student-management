@@ -27,6 +27,7 @@ export class AccountService implements UserService<Account, Credentials> {
 
     const foundAccount = await this.accountRepository.findOne({
       where: {username: credentials.username},
+      include: ['roles'],
     });
     if (foundAccount === null || !compareSync(credentials.password, foundAccount.password)) {
       throw new HttpErrors.Unauthorized(invalidCredentialsErrorMessage);
@@ -41,7 +42,7 @@ export class AccountService implements UserService<Account, Credentials> {
       [securityId]: accountId,
       id: accountId,
       username: account.username,
-      // role: account.role,
+      roles: account.roles,
     };
   }
 }

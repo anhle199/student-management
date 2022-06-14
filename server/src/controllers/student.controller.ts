@@ -1,15 +1,15 @@
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
 import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
 import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody, response} from '@loopback/rest';
+import {UserRole} from '../models';
 import {Student} from '../models/student.model';
 import {StudentRepository} from '../repositories';
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization'
-import {UserRole} from '../models';
 
 export class StudentController {
   constructor(
     @repository('StudentRepository') public studentRepository: StudentRepository
-  ) {}
+  ) { }
 
   @post('/students')
   @response(200, {
@@ -56,8 +56,8 @@ export class StudentController {
     return this.studentRepository.create(student);
   }
 
-  // @authenticate('jwt')
-  // @authorize({allowedRoles: [UserRole.MEMBER]})
+  @authenticate('jwt')
+  @authorize({allowedRoles: [UserRole.STUDENT_MONITOR]})
   @get('/students')
   @response(200, {
     description: "Returns a list of students.",

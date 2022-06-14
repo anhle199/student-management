@@ -1,11 +1,11 @@
-import {Entity, model, property, belongsTo, hasMany} from '@loopback/repository';
+import {belongsTo, Entity, hasMany, model, property} from '@loopback/repository';
 import {RoleMapping} from './role-mapping.model';
 import {Role} from './role.model';
 import {Student} from './student.model';
 
 export enum UserRole {
-  MEMBER = "MEMBER",
-  MONITOR = "MONITOR",
+  STUDENT_MEMBER = "STUDENT_MEMBER",
+  STUDENT_MONITOR = "STUDENT_MONITOR",
 }
 
 @model()

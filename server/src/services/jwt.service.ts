@@ -20,7 +20,7 @@ export class JWTService implements TokenService {
         [securityId]: decodedToken['id'],
         id: decodedToken['id'],
         username: decodedToken['username'],
-        role: decodedToken['role'],
+        roles: decodedToken['roles'],
       }
 
       return userProfile;
@@ -40,7 +40,7 @@ export class JWTService implements TokenService {
     const userDataForToken = {
       id: userProfile[securityId],
       username: userProfile.username,
-      role: userProfile.role,
+      roles: userProfile.roles,
     };
 
     try {

@@ -18,7 +18,7 @@ import {
 } from '@loopback/authentication-jwt';
 import {JWTService} from './services';
 import {AccountService} from './services/account.service';
-import {TokenServiceConstants, AccountServiceBindings} from './keys';
+import {TokenServiceConstants, AccountServiceBindings, AuthorizationBindings} from './keys';
 import {AuthorizationOptions, AuthorizationDecision, AuthorizationComponent, AuthorizationTags} from '@loopback/authorization';
 import {AuthorizationProvider} from './providers';
 // ----------------------------------------
@@ -78,7 +78,10 @@ export class StudentManagementApplication extends BootMixin(
     const binding = this.component(AuthorizationComponent);
     this.configure(binding.key).to(authorizationOptions);
 
-    this.bind('providers.authorizer.provider')
+    this.bind(AuthorizationBindings.DEFAULT_DECISION)
+      .to(authorizationOptions.defaultDecision);
+    
+    this.bind(AuthorizationBindings.AUTHORIZER_PROVIDER)
       .toProvider(AuthorizationProvider)
       .tag(AuthorizationTags.AUTHORIZER);
   }
