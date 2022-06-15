@@ -14,7 +14,7 @@ export namespace PasswordHasherServiceBindings {
 
 export namespace TokenServiceConstants {
   export const TOKEN_SECRET_VALUE = "secret-key";
-  export const TOKEN_EXPIRES_IN_VALUE = "36000";  // 10 mins
+  export const TOKEN_EXPIRES_IN_VALUE = "216000";  // 1h
 }
 
 export namespace AccountServiceBindings {

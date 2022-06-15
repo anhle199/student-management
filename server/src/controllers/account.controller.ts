@@ -1,6 +1,6 @@
 import {authenticate} from '@loopback/authentication';
 import {TokenServiceBindings} from '@loopback/authentication-jwt';
-import {authorize} from '@loopback/authorization';
+import {AuthorizationContext, AuthorizationDecision, AuthorizationMetadata, authorize} from '@loopback/authorization';
 import {Getter, inject} from '@loopback/core';
 import {Filter, model, property, repository} from '@loopback/repository';
 import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
@@ -10,6 +10,25 @@ import {Account, RoleEnum, RoleMapping, SignInCredentials, SignUpCredentials} fr
 import {AccountRepository, RoleMappingRepository, RoleRepository, StudentRepository} from '../repositories';
 import {AccountService, JWTService, PasswordHasher} from '../services';
 
+async function verifyAccessRightToChangePassword(
+  context: AuthorizationContext,
+  metadata: AuthorizationMetadata,
+): Promise<AuthorizationDecision> {
+  const [userId, changePasswordRequest] = context.invocationContext.args;
+
+  console.log("--------------function: verifyAccessRightToChangePassword--------------")
+  console.log({context})
+  console.log({userId})
+  console.log({changePasswordRequest})
+  console.log({metadata})
+  console.log("--------------end of function: verifyAccessRightToChangePassword--------------")
+
+  // Compare token's userId and request's userId.
+  const userRequested = context.principals[0];
+  const decision = (userRequested.id === userId) ? AuthorizationDecision.ALLOW : AuthorizationDecision.DENY;
+
+  return decision;
+}
 
 @model()
 class ChangePasswordRequest {
@@ -131,7 +150,7 @@ export class AccountController {
     return this.accountRepository.find(filter);
   }
 
-  @authorize.skip()
+  @authorize({voters: [verifyAccessRightToChangePassword]})
   @patch('/accounts/{id}/change-password')
   async changePassword(
     @param.path.number('id') id: number,
@@ -143,12 +162,6 @@ export class AccountController {
       }
     }) requestInstance: ChangePasswordRequest,
   ): Promise<void> {
-    // Compare token's userId and request's userId.
-    const currentUser = await this.getCurrentUser();
-    if (currentUser.id !== id) {
-      throw new HttpErrors.Forbidden("Not allowed to access this api.");
-    }
-
     const foundAccount = await this.accountRepository.findById(id);
     const {currentPassword, newPassword} = requestInstance;
 

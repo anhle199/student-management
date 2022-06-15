@@ -37,7 +37,6 @@ export class UniversityClassController {
     })
     universityClass: Omit<UniversityClass, 'id'>
   ): Promise<UniversityClass> {
-    console.log(universityClass)
     // Find by class name ('name' property).
     // Returns an UniversityClass object if the given class name has already existed;
     // otherwise returns null
@@ -130,18 +129,13 @@ export class UniversityClassController {
       throw new HttpErrors.NotFound("University class not found.");
     }
 
-    try {
-      // only executable on PostgreSQL.
-      // returns object: { affectedRows: number, count: number, rows: [] }.
-      await this.universityClassRepository.execute(
-        "update student set universityclassid = null where universityclassid = $1",
-        [id],
-      )
+    // only executable on PostgreSQL.
+    // returns object: { affectedRows: number, count: number, rows: [] }.
+    await this.universityClassRepository.execute(
+      "update student set universityclassid = null where universityclassid = $1",
+      [id],
+    )
 
-      await this.universityClassRepository.deleteById(id);
-    } catch (error) {
-      console.log({endpoint: `/classes/${id}`, error})
-      throw error;
-    }
+    await this.universityClassRepository.deleteById(id);
   }
 }

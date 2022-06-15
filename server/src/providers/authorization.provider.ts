@@ -1,13 +1,9 @@
-import {inject, Provider} from '@loopback/core';
+import {Provider} from '@loopback/core';
 import {Authorizer, AuthorizationContext, AuthorizationMetadata, AuthorizationDecision} from '@loopback/authorization';
-import {AuthorizationBindings} from '../keys';
 import {Role} from '../models/role.model';
 
 export class AuthorizationProvider implements Provider<Authorizer> {
-  constructor(
-    @inject(AuthorizationBindings.DEFAULT_DECISION)
-    protected defaultDecision: AuthorizationDecision
-  ) { }
+  constructor() {}
 
   value(): Authorizer {
     return this.authorize.bind(this);
@@ -20,21 +16,24 @@ export class AuthorizationProvider implements Provider<Authorizer> {
     const userRoles: Role[] = authorizationContext.principals[0].roles;
     const allowedRoles = metadata.allowedRoles;
 
+    console.log("--------------function: authorize--------------")
+    console.log({metadata})
     console.log({principals: authorizationContext.principals})
     console.log({userRoles})
     console.log({allowedRoles})
+    console.log("--------------end of function: authorize--------------")
 
-    let decision = this.defaultDecision;
+    let decision = AuthorizationDecision.ABSTAIN;
 
     // Check allowed roles
-    for (const role of userRoles) {
-      if (allowedRoles?.includes(role.name)) {
-        decision = AuthorizationDecision.ALLOW;
-        break;
+    if (userRoles && userRoles.length > 0) {
+      for (const role of userRoles) {
+        if (allowedRoles?.includes(role.name)) {
+          decision = AuthorizationDecision.ALLOW;
+          break;
+        }
       }
     }
-
-    // Check denied roles
 
     return decision;
   }
