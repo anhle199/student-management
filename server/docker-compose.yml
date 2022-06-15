@@ -1,0 +1,19 @@
+version: '3'
+networks:
+  local_network:
+    external: true
+services:
+  student-management-server:
+    image: student-management-server
+    container_name: student-management-server
+    restart: unless-stopped
+    environment:
+      - DB_HOST_NAME=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_DATABASE_NAME=student_management
+    ports:
+      - 3000:3000
+    networks:
+      - local_network
