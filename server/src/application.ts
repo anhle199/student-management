@@ -16,12 +16,27 @@ import {
   JWTAuthenticationComponent,
   TokenServiceBindings,
 } from '@loopback/authentication-jwt';
-import {JWTService} from './services';
+import {BcryptHasher, JWTService} from './services';
 import {AccountService} from './services/account.service';
-import {TokenServiceConstants, AccountServiceBindings, AuthorizationBindings} from './keys';
-import {AuthorizationOptions, AuthorizationDecision, AuthorizationComponent, AuthorizationTags} from '@loopback/authorization';
+import {
+  TokenServiceConstants,
+  AccountServiceBindings,
+  AuthorizationBindings,
+  PasswordHasherServiceBindings,
+  PasswordHasherServiceConstants,
+} from './keys';
+import {
+  AuthorizationOptions,
+  AuthorizationDecision,
+  AuthorizationComponent,
+  AuthorizationTags
+} from '@loopback/authorization';
+// ----------------------------------------
+
+// IMPORT FOR APPLYING AUTHORIZATION
 import {AuthorizationProvider} from './providers';
 // ----------------------------------------
+
 
 export {ApplicationConfig};
 
@@ -61,6 +76,10 @@ export class StudentManagementApplication extends BootMixin(
     this.component(JWTAuthenticationComponent);
     // ----------------------------------------
 
+    // Binds password hasher
+    this.bind(PasswordHasherServiceBindings.ROUNDS).to(PasswordHasherServiceConstants.ROUNDS);
+    this.bind(PasswordHasherServiceBindings.PASSWORD_HASHER).toClass(BcryptHasher);
+
     // Override token service
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
     this.bind(TokenServiceBindings.TOKEN_SECRET).to(TokenServiceConstants.TOKEN_SECRET_VALUE);
@@ -80,7 +99,7 @@ export class StudentManagementApplication extends BootMixin(
 
     this.bind(AuthorizationBindings.DEFAULT_DECISION)
       .to(authorizationOptions.defaultDecision);
-    
+
     this.bind(AuthorizationBindings.AUTHORIZER_PROVIDER)
       .toProvider(AuthorizationProvider)
       .tag(AuthorizationTags.AUTHORIZER);

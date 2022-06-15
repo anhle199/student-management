@@ -1,7 +1,7 @@
 import {model, property, repository} from '@loopback/repository';
 import {StudentRepository, AccountRepository} from '../repositories';
 import {patch, param, requestBody, HttpErrors, getModelSchemaRef} from '@loopback/rest';
-import {Account, RoleEnum} from '../models';
+import {RoleEnum} from '../models';
 import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import {AuthenticationStrategyConstants} from '../keys';
@@ -13,16 +13,16 @@ class AssignedStudentRequest {
 }
 
 @authenticate(AuthenticationStrategyConstants.JWT)
-@authorize({allowedRoles: [RoleEnum.ADMIN]})
+@authorize({allowedRoles: [RoleEnum.ADMIN, RoleEnum.TEACHER]})
 export class AccountStudentController {
   constructor(
-    @repository('StudentRepository') protected studentRepository: StudentRepository,
-    @repository('AccountRepository') protected accountRepository: AccountRepository,
+    @repository(StudentRepository) protected studentRepository: StudentRepository,
+    @repository(AccountRepository) protected accountRepository: AccountRepository,
   ) {}
 
   @patch('accounts/{id}/assign-student')
   async assignStudent(
-    @param.path.number('id') accountId: typeof Account.prototype.id,
+    @param.path.number('id') accountId: number,
     @requestBody({
       content: {
         'application/json': {

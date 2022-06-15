@@ -9,9 +9,9 @@ import {RoleEnum} from '../models';
 
 export class ClassStudentController {
   constructor(
-    @repository("UniversityClassRepository")
+    @repository(UniversityClassRepository)
     protected universityClassRepository: UniversityClassRepository,
-    @repository("StudentRepository")
+    @repository(StudentRepository)
     protected studentRepository: StudentRepository,
   ) {}
 

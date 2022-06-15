@@ -2,18 +2,20 @@ import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import {Count, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
 import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
-import {RoleEnum} from '../models';
-import {Student} from '../models/student.model';
-import {StudentRepository} from '../repositories';
+import {AuthenticationStrategyConstants} from '../keys';
+import {RoleEnum, Student} from '../models';
+import {AccountRepository, StudentRepository} from '../repositories';
 
+const topLevelRoles = [RoleEnum.ADMIN];
+
+@authenticate(AuthenticationStrategyConstants.JWT)
+@authorize({allowedRoles: topLevelRoles})
 export class StudentController {
   constructor(
-    @repository('StudentRepository') public studentRepository: StudentRepository
-  ) { }
+    @repository(AccountRepository) protected accountRepository: AccountRepository,
+    @repository(StudentRepository) protected studentRepository: StudentRepository
+  ) {}
 
-
-  @authenticate('jwt')
-  @authorize({allowedRoles: []})
   @post('/students')
   async create(
     @requestBody({
@@ -32,7 +34,7 @@ export class StudentController {
 
     // Create where condition statement to find students that satisfy the above condition.
     const whereStatement = {where: {}};
-    if ("phone" in student) {
+    if (student.phone) {
       whereStatement.where = {
         or: [
           {id: student.id},
@@ -52,8 +54,13 @@ export class StudentController {
     return this.studentRepository.create(student);
   }
 
-  @authenticate('jwt')
-  @authorize({allowedRoles: [RoleEnum.STUDENT_MONITOR]})
+  @authorize({
+    allowedRoles: [
+      ...topLevelRoles,
+      RoleEnum.TEACHER,
+      RoleEnum.STUDENT_MONITOR
+    ]
+  })
   @get('/students')
   async find(
     @param.filter(Student) filter?: Filter<Student>
@@ -61,7 +68,14 @@ export class StudentController {
     return this.studentRepository.find(filter);
   }
 
-
+  @authorize({
+    allowedRoles: [
+      ...topLevelRoles,
+      RoleEnum.TEACHER,
+      RoleEnum.STUDENT_MONITOR,
+      RoleEnum.STUDENT_MEMBER
+    ]
+  })
   @get('/students/{id}')
   async findById(
     @param.path.string('id') id: string,
@@ -70,13 +84,25 @@ export class StudentController {
     return this.studentRepository.findById(id, filter);
   }
 
-
+  @authorize({
+    allowedRoles: [
+      ...topLevelRoles,
+      RoleEnum.TEACHER,
+      RoleEnum.STUDENT_MONITOR
+    ]
+  })
   @get('/students/count')
   async count(@param.where(Student) where?: Where<Student>): Promise<Count> {
     return this.studentRepository.count(where);
   }
 
-
+  @authorize({
+    allowedRoles: [
+      ...topLevelRoles,
+      RoleEnum.TEACHER,
+      RoleEnum.STUDENT_MEMBER
+    ]
+  })
   @patch('/students/{id}')
   async updateById(
     @param.path.string('id') id: string,
@@ -92,7 +118,7 @@ export class StudentController {
     }) student: Student
   ): Promise<void> {
     // Check duplicate `phone` property
-    if ('phone' in student) {
+    if (student.phone) {
       const existedStudent = await this.studentRepository.findOne({
         where: {phone: student.phone},
       })
@@ -105,7 +131,6 @@ export class StudentController {
     await this.studentRepository.updateById(id, student);
   }
 
-
   @del('/students/{id}')
   async deleteById(@param.path.string('id') id: string): Promise<void> {
     const isExisted = await this.studentRepository.exists(id)
@@ -113,6 +138,12 @@ export class StudentController {
       throw new HttpErrors.NotFound(`There is no student that \`id\` is equal to \`${id}\``)
     }
 
+    // only executable on PostgreSQL.
+    // returns object: { affectedRows: number, count: number, rows: [] }.
+    await this.accountRepository.execute(
+      "update account set studentid = null where studentid = $1",
+      [id],
+    )
     await this.studentRepository.deleteById(id);
   }
 }

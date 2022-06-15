@@ -19,7 +19,7 @@ export class JWTService implements TokenService {
       const decodedToken: any = jwt.verify(token, this.jwtSecretKey);
 
       const userProfile = {
-        [securityId]: decodedToken['id'],
+        [securityId]: decodedToken['id'].toString(),
         id: decodedToken['id'],
         username: decodedToken['username'],
         roles: decodedToken['roles'],
@@ -40,7 +40,7 @@ export class JWTService implements TokenService {
     }
 
     const userDataForToken = {
-      id: userProfile[securityId],
+      id: userProfile.id,    // userId: number
       username: userProfile.username,
       roles: userProfile.roles,
     };

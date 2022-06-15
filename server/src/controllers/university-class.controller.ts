@@ -12,7 +12,7 @@ import {UniversityClassRepository} from '../repositories';
 export class UniversityClassController {
   constructor(
     @repository(UniversityClassRepository)
-    public universityClassRepository: UniversityClassRepository,
+    protected universityClassRepository: UniversityClassRepository,
   ) { }
 
   @post('/classes')
@@ -119,7 +119,6 @@ export class UniversityClassController {
       await this.universityClassRepository.updateById(id, universityClass);
     }
   }
-
 
   @del('/classes/{id}')
   @response(204, {

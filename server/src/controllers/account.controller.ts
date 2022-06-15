@@ -1,26 +1,49 @@
 import {authenticate} from '@loopback/authentication';
 import {TokenServiceBindings} from '@loopback/authentication-jwt';
 import {authorize} from '@loopback/authorization';
-import {inject} from '@loopback/core';
-import {Filter, repository} from '@loopback/repository';
-import {get, getModelSchemaRef, HttpErrors, param, post, requestBody} from '@loopback/rest';
-import {genSalt, hash} from 'bcryptjs';
-import {AccountServiceBindings, AuthenticationStrategyConstants} from '../keys';
+import {Getter, inject} from '@loopback/core';
+import {Filter, model, property, repository} from '@loopback/repository';
+import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, UserProfile} from '@loopback/security';
+import {AccountServiceBindings, AuthenticationStrategyConstants, PasswordHasherServiceBindings} from '../keys';
 import {Account, RoleEnum, RoleMapping, SignInCredentials, SignUpCredentials} from '../models';
 import {AccountRepository, RoleMappingRepository, RoleRepository, StudentRepository} from '../repositories';
-import {AccountService, JWTService} from '../services';
+import {AccountService, JWTService, PasswordHasher} from '../services';
+
+
+@model()
+class ChangePasswordRequest {
+  @property({
+    type: 'string',
+    required: true,
+  })
+  currentPassword: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  newPassword: string;
+
+  constructor(data: ChangePasswordRequest) {
+    this.currentPassword = data.currentPassword;
+    this.newPassword = data.newPassword;
+  }
+}
 
 
 @authenticate(AuthenticationStrategyConstants.JWT)
 @authorize({allowedRoles: [RoleEnum.ADMIN]})
 export class AccountController {
   constructor(
-    @repository(AccountRepository) public accountRepository: AccountRepository,
-    @repository(StudentRepository) public studentRepository: StudentRepository,
-    @repository(RoleRepository) public roleRepository: RoleRepository,
-    @repository(RoleMappingRepository) public roleMappingRepository: RoleMappingRepository,
-    @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: JWTService,
-    @inject(AccountServiceBindings.ACCOUNT_SERVICE) public accountService: AccountService,
+    @repository(AccountRepository) protected accountRepository: AccountRepository,
+    @repository(StudentRepository) protected studentRepository: StudentRepository,
+    @repository(RoleRepository) protected roleRepository: RoleRepository,
+    @repository(RoleMappingRepository) protected roleMappingRepository: RoleMappingRepository,
+    @inject(TokenServiceBindings.TOKEN_SERVICE) protected jwtService: JWTService,
+    @inject(AccountServiceBindings.ACCOUNT_SERVICE) protected accountService: AccountService,
+    @inject(PasswordHasherServiceBindings.PASSWORD_HASHER) protected passwordHasher: PasswordHasher,
+    @inject.getter(SecurityBindings.USER) private getCurrentUser: Getter<UserProfile>,
   ) { }
 
   // TODO: add `roleIds` field to Account returned.
@@ -65,7 +88,7 @@ export class AccountController {
     this.accountService.validateCredentials({username, password});
 
     // hash password
-    account.password = await hash(password, await genSalt());
+    account.password = await this.passwordHasher.hash(password);
 
     // Insert new account to the database.
     const createdAccount = await this.accountRepository.create(account);
@@ -106,5 +129,52 @@ export class AccountController {
     @param.filter(Account) filter?: Filter<Account>
   ): Promise<Account[]> {
     return this.accountRepository.find(filter);
+  }
+
+  @authorize.skip()
+  @patch('/accounts/{id}/change-password')
+  async changePassword(
+    @param.path.number('id') id: number,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(ChangePasswordRequest)
+        }
+      }
+    }) requestInstance: ChangePasswordRequest,
+  ): Promise<void> {
+    // Compare token's userId and request's userId.
+    const currentUser = await this.getCurrentUser();
+    if (currentUser.id !== id) {
+      throw new HttpErrors.Forbidden("Not allowed to access this api.");
+    }
+
+    const foundAccount = await this.accountRepository.findById(id);
+    const {currentPassword, newPassword} = requestInstance;
+
+    // Verify current passed password with stored password.
+    // Validate new password.
+    const isMatchedCurrentPassword = await this.passwordHasher.verify(currentPassword, foundAccount.password);
+    if (!isMatchedCurrentPassword || !this.accountService.validatePassword(newPassword)) {
+      throw new HttpErrors.BadRequest("Incorrect current password or invalid new password.");
+    }
+
+    // Hash new password and save to database.
+    const newHashedPassword = await this.passwordHasher.hash(newPassword);
+    await this.accountRepository.updateById(id, {password: newHashedPassword});
+  }
+
+  @del('/accounts/{id}')
+  async deleteById(@param.path.number('id') id: number): Promise<void> {
+    const isExistedAccount = await this.accountRepository.exists(id);
+    if (!isExistedAccount) {
+      throw new HttpErrors.NotFound("Account not found.");
+    }
+
+    // remove referenced row from `account` to `role_mapping`.
+    await this.roleMappingRepository.deleteAll({accountId: id});
+
+    // remove account by id.
+    await this.accountRepository.deleteById(id);
   }
 }
