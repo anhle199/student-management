@@ -4,14 +4,11 @@ import {UserProfile, securityId} from '@loopback/security';
 import {repository} from '@loopback/repository';
 import {AccountRepository} from '../repositories';
 import {HttpErrors} from '@loopback/rest';
-import {PasswordHasherServiceBindings} from '../keys';
-import {PasswordHasher} from './bcrypt-hasher.service';
-import {inject} from '@loopback/core';
+import {verifyPassword} from '../utilities/encrypt';
 
 export class AccountService implements UserService<Account, SignInCredentials> {
   constructor(
     @repository(AccountRepository) protected accountRepository: AccountRepository,
-    @inject(PasswordHasherServiceBindings.PASSWORD_HASHER) protected passwordHasher: PasswordHasher
   ) {}
 
   public validatePassword(password: string): boolean {
@@ -41,7 +38,7 @@ export class AccountService implements UserService<Account, SignInCredentials> {
       throw new HttpErrors.Unauthorized(incorrectCredentialsErrorMessage);
     }
 
-    const isMatchPassword = await this.passwordHasher.verify(credentials.password, foundAccount.password);
+    const isMatchPassword = await verifyPassword(credentials.password, foundAccount.password);
     if (!isMatchPassword) {
       throw new HttpErrors.Unauthorized(incorrectCredentialsErrorMessage);
     }

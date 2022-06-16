@@ -16,13 +16,6 @@ export class AuthorizationProvider implements Provider<Authorizer> {
     const userRoles: Role[] = authorizationContext.principals[0].roles;
     const allowedRoles = metadata.allowedRoles;
 
-    console.log("--------------function: authorize--------------")
-    console.log({metadata})
-    console.log({principals: authorizationContext.principals})
-    console.log({userRoles})
-    console.log({allowedRoles})
-    console.log("--------------end of function: authorize--------------")
-
     let decision = AuthorizationDecision.ABSTAIN;
 
     // Check allowed roles

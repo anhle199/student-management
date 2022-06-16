@@ -4,10 +4,10 @@ import {Role} from './role.model';
 import {Student} from './student.model';
 
 export enum RoleEnum {
-  ADMIN = "ADMIN",
-  TEACHER = "TEACHER",
-  STUDENT_MEMBER = "STUDENT_MEMBER",
-  STUDENT_MONITOR = "STUDENT_MONITOR",
+  ADMIN = "admin",
+  TEACHER = "teacher",
+  STUDENT_MEMBER = "student_member",
+  STUDENT_MONITOR = "student_monitor",
 }
 
 @model()

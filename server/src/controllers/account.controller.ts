@@ -5,23 +5,17 @@ import {Getter, inject} from '@loopback/core';
 import {Filter, model, property, repository} from '@loopback/repository';
 import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
 import {SecurityBindings, UserProfile} from '@loopback/security';
-import {AccountServiceBindings, AuthenticationStrategyConstants, PasswordHasherServiceBindings} from '../keys';
+import {AccountServiceBindings, AuthenticationStrategyConstants} from '../keys';
 import {Account, RoleEnum, RoleMapping, SignInCredentials, SignUpCredentials} from '../models';
 import {AccountRepository, RoleMappingRepository, RoleRepository, StudentRepository} from '../repositories';
-import {AccountService, JWTService, PasswordHasher} from '../services';
+import {AccountService, JWTService} from '../services';
+import {encrypt, verifyPassword} from '../utilities/encrypt';
 
 async function verifyAccessRightToChangePassword(
   context: AuthorizationContext,
   metadata: AuthorizationMetadata,
 ): Promise<AuthorizationDecision> {
-  const [userId, changePasswordRequest] = context.invocationContext.args;
-
-  console.log("--------------function: verifyAccessRightToChangePassword--------------")
-  console.log({context})
-  console.log({userId})
-  console.log({changePasswordRequest})
-  console.log({metadata})
-  console.log("--------------end of function: verifyAccessRightToChangePassword--------------")
+  const [userId] = context.invocationContext.args;
 
   // Compare token's userId and request's userId.
   const userRequested = context.principals[0];
@@ -61,7 +55,6 @@ export class AccountController {
     @repository(RoleMappingRepository) protected roleMappingRepository: RoleMappingRepository,
     @inject(TokenServiceBindings.TOKEN_SERVICE) protected jwtService: JWTService,
     @inject(AccountServiceBindings.ACCOUNT_SERVICE) protected accountService: AccountService,
-    @inject(PasswordHasherServiceBindings.PASSWORD_HASHER) protected passwordHasher: PasswordHasher,
     @inject.getter(SecurityBindings.USER) private getCurrentUser: Getter<UserProfile>,
   ) { }
 
@@ -107,7 +100,7 @@ export class AccountController {
     this.accountService.validateCredentials({username, password});
 
     // hash password
-    account.password = await this.passwordHasher.hash(password);
+    account.password = await encrypt(password);
 
     // Insert new account to the database.
     const createdAccount = await this.accountRepository.create(account);
@@ -167,13 +160,13 @@ export class AccountController {
 
     // Verify current passed password with stored password.
     // Validate new password.
-    const isMatchedCurrentPassword = await this.passwordHasher.verify(currentPassword, foundAccount.password);
+    const isMatchedCurrentPassword = await verifyPassword(currentPassword, foundAccount.password);
     if (!isMatchedCurrentPassword || !this.accountService.validatePassword(newPassword)) {
       throw new HttpErrors.BadRequest("Incorrect current password or invalid new password.");
     }
 
     // Hash new password and save to database.
-    const newHashedPassword = await this.passwordHasher.hash(newPassword);
+    const newHashedPassword = await encrypt(newPassword);
     await this.accountRepository.updateById(id, {password: newHashedPassword});
   }
 

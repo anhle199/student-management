@@ -16,14 +16,12 @@ import {
   JWTAuthenticationComponent,
   TokenServiceBindings,
 } from '@loopback/authentication-jwt';
-import {BcryptHasher, JWTService} from './services';
+import {JWTService} from './services';
 import {AccountService} from './services/account.service';
 import {
   TokenServiceConstants,
   AccountServiceBindings,
   AuthorizationBindings,
-  PasswordHasherServiceBindings,
-  PasswordHasherServiceConstants,
 } from './keys';
 import {
   AuthorizationOptions,
@@ -75,10 +73,6 @@ export class StudentManagementApplication extends BootMixin(
     // Mount jwt component
     this.component(JWTAuthenticationComponent);
     // ----------------------------------------
-
-    // Binds password hasher
-    this.bind(PasswordHasherServiceBindings.ROUNDS).to(PasswordHasherServiceConstants.ROUNDS);
-    this.bind(PasswordHasherServiceBindings.PASSWORD_HASHER).toClass(BcryptHasher);
 
     // Override token service
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);

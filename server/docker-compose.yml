@@ -8,11 +8,12 @@ services:
     container_name: student-management-server
     restart: unless-stopped
     environment:
-      - DB_HOST_NAME=db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_DATABASE_NAME=student_management
+      - POSTGRES_HOST_NAME=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DATABASE_NAME=student_management
+      - TZ=Asia/Ho_Chi_Minh
     ports:
       - 3000:3000
     networks:

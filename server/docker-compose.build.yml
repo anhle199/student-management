@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  build:
+    image: student-management-server
+    build:
+      context: .
+      dockerfile: Dockerfile

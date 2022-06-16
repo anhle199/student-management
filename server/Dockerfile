@@ -4,11 +4,7 @@
 # Initializes node v16.15.1 as a base image, named `builder`.
 FROM node:16.15.1-alpine AS builder
 
-# Author information.
-LABEL author.name="Le Hoang Anh"
-LABEL author.email="lehoanganh.le2001@gmail.com"
-
-# Create the `/app` directory in the image.
+# Create the `/app` directory in the image for the build stage.
 WORKDIR /app
 
 # Install typescript with --quite and -g modes.
@@ -35,13 +31,18 @@ RUN npm prune --production
 # -------------------------------------------------------------------------
 FROM node:16.15.1-alpine
 
-# Change working directory to `app`.
+# Create the `/app` directory in the image's filesystem.
 WORKDIR /app
+
+# Author information.
+LABEL author.name="Le Hoang Anh"
+LABEL author.email="lehoanganh.le2001@gmail.com"
 
 # Copy necessary directories/files from builder stage
 # to current working directory in the image's filesystem.
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/data ./data
 
 EXPOSE 3000
 CMD ["node", "dist/index.js"]

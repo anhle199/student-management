@@ -59,6 +59,8 @@
     "@loopback/rest-explorer": "^5.0.0",
     "@loopback/service-proxy": "^5.0.0",
     "clean": "^4.0.2",
+    "csvtojson": "^2.0.10",
+    "dotenv": "^16.0.1",
     "jsonwebtoken": "^8.5.1",
     "loopback-connector-postgresql": "^5.5.0",
     "tslib": "^2.0.0"
