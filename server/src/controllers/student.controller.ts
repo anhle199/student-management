@@ -123,7 +123,7 @@ export class StudentController {
         where: {phone: student.phone},
       })
 
-      if (existedStudent !== null) {
+      if (existedStudent !== null && existedStudent.id !== id) {
         throw new HttpErrors.Conflict('Duplicate `phone` property.');
       }
     }

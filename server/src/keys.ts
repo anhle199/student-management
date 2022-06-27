@@ -4,7 +4,7 @@ import {Account, SignInCredentials} from './models';
 
 export namespace TokenServiceConstants {
   export const TOKEN_SECRET_VALUE = "secret-key";
-  export const TOKEN_EXPIRES_IN_VALUE = "216000";  // 1h
+  export const TOKEN_EXPIRES_IN_VALUE = "86400000";
 }
 
 export namespace AccountServiceBindings {
