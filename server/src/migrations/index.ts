@@ -1,13 +1,17 @@
 import {StudentManagementApplication} from '../application';
 import {MigrationRepository} from '../repositories/migration.repository';
+
+// insertion functions
 import insertRoles from './01.insert.roles';
 import insertAdminAccountCredential from './02.insert.admin-account-credential';
+import insertClasses from './03.insert.classes';
 
-export async function migrations(app: StudentManagementApplication) {
+export async function migratePreparedData(app: StudentManagementApplication) {
   const migrationRepo = await app.getRepository(MigrationRepository);
   const migrationList: {name: string, migration: Function}[] = [
     {name: "01.insert.roles", migration: insertRoles},
     {name: "02.insert.admin-account-credential", migration: insertAdminAccountCredential},
+    {name: "03.insert.classes", migration: insertClasses},
   ];
 
   for (const migration of migrationList) {

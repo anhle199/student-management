@@ -16,4 +16,3 @@ export async function insertCsvToModel(fileName: string, insertFunction: Functio
     await insertFunction(row);
   }
 }
-

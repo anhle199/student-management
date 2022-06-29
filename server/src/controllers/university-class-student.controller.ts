@@ -19,7 +19,7 @@ export class ClassStudentController {
   // - student monitor must belongs to the class with the given universityClassId.
   // - teacher must teach the class with the given universityClassId.
   @authenticate(AuthenticationStrategyConstants.JWT)
-  @authorize({allowedRoles: [RoleEnum.TEACHER, RoleEnum.STUDENT_MONITOR]})
+  @authorize({allowedRoles: [RoleEnum.ADMIN, RoleEnum.TEACHER, RoleEnum.STUDENT_MONITOR]})
   @get('/classes/{universityClassId}/students')
   async getAllStudents(
     @param.path.number('universityClassId') universityClassId: number,

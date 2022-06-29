@@ -1,13 +1,13 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {repository} from '@loopback/repository';
-import {del, getModelSchemaRef, param, patch, post, requestBody} from '@loopback/rest';
-import {AuthenticationStrategyConstants} from '../keys';
-import {Role, RoleEnum} from '../models';
-import {RoleRepository} from '../repositories';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { Filter, repository } from '@loopback/repository';
+import { del, get, getModelSchemaRef, param, patch, post, requestBody } from '@loopback/rest';
+import { AuthenticationStrategyConstants } from '../keys';
+import { Role, RoleEnum } from '../models';
+import { RoleRepository } from '../repositories';
 
 @authenticate(AuthenticationStrategyConstants.JWT)
-@authorize({allowedRoles: [RoleEnum.ADMIN]})
+@authorize({ allowedRoles: [RoleEnum.ADMIN] })
 export class RoleController {
   constructor(@repository(RoleRepository) protected roleRepository: RoleRepository) { }
 
@@ -26,6 +26,11 @@ export class RoleController {
     role: Omit<Role, 'id'>
   ): Promise<Role> {
     return this.roleRepository.create(role);
+  }
+
+  @get("/roles")
+  async getAll(@param.filter(Role) filter?: Filter<Role>): Promise<Role[]> {
+    return this.roleRepository.find(filter);
   }
 
   @patch('/roles/{id}')

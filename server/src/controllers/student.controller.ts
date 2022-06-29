@@ -3,8 +3,9 @@ import {authorize} from '@loopback/authorization';
 import {Count, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
 import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
 import {AuthenticationStrategyConstants} from '../keys';
-import {RoleEnum, Student} from '../models';
-import {AccountRepository, StudentRepository} from '../repositories';
+import {Course, RoleEnum, Student} from '../models';
+import {AccountRepository, RoleRepository, StudentRepository} from '../repositories';
+import { encrypt } from '../utilities/encrypt';
 
 const topLevelRoles = [RoleEnum.ADMIN];
 
@@ -13,7 +14,8 @@ const topLevelRoles = [RoleEnum.ADMIN];
 export class StudentController {
   constructor(
     @repository(AccountRepository) protected accountRepository: AccountRepository,
-    @repository(StudentRepository) protected studentRepository: StudentRepository
+    @repository(StudentRepository) protected studentRepository: StudentRepository,
+    @repository(RoleRepository) protected roleRepository: RoleRepository,
   ) {}
 
   @post('/students')
@@ -51,7 +53,26 @@ export class StudentController {
       throw new HttpErrors.Conflict("Duplicate property `id` or `phone`")
     }
 
-    return this.studentRepository.create(student);
+    // create student
+    const createdStudent = await this.studentRepository.create(student);
+
+    // get student member role
+    const studentMemberRole = await this.roleRepository.findOne({ where: { name: RoleEnum.STUDENT_MEMBER } })
+
+    // create account
+    if (studentMemberRole) {
+      const encryptedPassword = await encrypt(student.id);
+      await this.accountRepository.create({
+        username: student.id,
+        password: encryptedPassword,
+        roles: [studentMemberRole],
+      });
+    } else {
+      await this.studentRepository.deleteById(createdStudent.id);
+      return Promise.reject();
+    }
+
+    return createdStudent;
   }
 
   @authorize({
@@ -145,5 +166,19 @@ export class StudentController {
       [id],
     )
     await this.studentRepository.deleteById(id);
+  }
+
+  // Fetch all courses of a specific student
+  @get("/students/{id}/courses")
+  async getAllCourses(
+    @param.path.string("id") id: string,
+    @param.filter(Course) filter?: Filter<Course>,
+  ): Promise<Course[]> {
+    const isExistedStudent = await this.studentRepository.exists(id);
+    if (!isExistedStudent) {
+      throw new HttpErrors.NotFound("Student not found.")
+    }
+
+    return this.studentRepository.courses(id).find(filter);
   }
 }

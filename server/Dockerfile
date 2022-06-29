@@ -12,19 +12,24 @@ RUN npm install --quite typescript -g
 
 # Copy the package.json to `app` directory in the image's filesystem.
 COPY ./package.json ./
-COPY ./package-lock.json ./
+# COPY ./package-lock.json ./
+COPY ./yarn.lock ./
 
 # Install all dependencies.
-RUN npm install
+# RUN npm install
+RUN yarn --frozen-lockfile
 
 # Copy all directories/files (except those declared at the .dockerignore file)
 # from directory where the Dockerfile is stored to the image's filesystem.
 COPY . .
 
-RUN npm run build
+# RUN npm run build
+RUN yarn clean && yarn build
 
 # Remove all development dependencies.
 RUN npm prune --production
+RUN yarn install --production
+
 # ------------------------- End of building phase -------------------------
 
 

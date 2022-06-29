@@ -1,9 +1,9 @@
-import {JSONObject} from '@loopback/core';
-import {StudentManagementApplication} from '../application';
-import {RoleEnum} from '../models';
-import {AccountRepository, RoleMappingRepository, RoleRepository} from '../repositories';
-import {insertCsvToModel} from '../utilities/csv';
-import {encrypt} from '../utilities/encrypt';
+import { JSONObject } from '@loopback/core';
+import { StudentManagementApplication } from '../application';
+import { RoleEnum } from '../models';
+import { AccountRepository, RoleMappingRepository, RoleRepository } from '../repositories';
+import { insertCsvToModel } from '../utilities/csv';
+import { encrypt } from '../utilities/encrypt';
 
 export default async function (app: StudentManagementApplication) {
   const accountRepo = await app.getRepository(AccountRepository);

@@ -1,5 +1,5 @@
 import {StudentManagementApplication} from './application';
-import {migrations} from './migrations';
+import {migratePreparedData} from './migrations';
 
 export async function migrate(args: string[]) {
   const existingSchema = args.includes('--rebuild') ? 'drop' : 'alter';
@@ -9,7 +9,7 @@ export async function migrate(args: string[]) {
   await app.boot();
   await app.migrateSchema({existingSchema});
 
-  await migrations(app);
+  await migratePreparedData(app);
 
   // Connectors usually keep a pool of opened connections,
   // this keeps the process running even after all work is done.
