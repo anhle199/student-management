@@ -4,19 +4,23 @@ import {Course} from './course.model';
 import {Enrollment} from './enrollment.model';
 import {UniversityClass} from './university-class.model';
 
-enum Gender {
-  MALE = 1, FEMALE = 2
-}
+export enum GenderEnum { MALE = 1, FEMALE = 2 }
 
 @model()
 export class Student extends Entity {
   @property({
-    type: 'string',
+    type: 'number',
     id: true,
-    generated: false,
-    required: true,
+    generated: true,
   })
-  id: string;
+  id?: number;
+
+  @property({
+    type: 'string',
+    required: true,
+    index: {unique: true},
+  })
+  code: string; // student ID or student code.
 
   @property({
     type: 'string',
@@ -27,15 +31,22 @@ export class Student extends Entity {
   @property({
     type: 'number',
     required: true,
-    jsonSchema: { enum: Object.values(Gender) },
+    jsonSchema: { enum: Object.values(GenderEnum) },
   })
-  gender: Gender;
+  gender: GenderEnum;
 
   @property({
     type: 'string',
     index: {unique: true},
   })
   phone?: string;
+
+  @property({
+    type: 'boolean',
+    required: false,
+    default: false,
+  })
+  isMonitor?: boolean;
 
   @belongsTo(() => UniversityClass)
   universityClassId: number;
@@ -53,6 +64,7 @@ export class Student extends Entity {
 
 export interface StudentRelations {
   // defines navigational properties
+  universityClass?: UniversityClass;
 }
 
 export type StudentWithRelations = Student & StudentRelations;

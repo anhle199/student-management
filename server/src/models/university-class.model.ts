@@ -1,7 +1,7 @@
 import {Entity, hasMany, model, property} from '@loopback/repository';
 import {Student} from './student.model';
 
-@model({name: 'university_class'})
+@model()
 export class UniversityClass extends Entity {
   @property({
     type: 'number',
@@ -29,5 +29,4 @@ export interface UniversityClassRelations {
   // defines navigational properties
 }
 
-export type UniversityClassWithRelations = UniversityClass &
-  UniversityClassRelations;
+export type UniversityClassWithRelations = UniversityClass & UniversityClassRelations;

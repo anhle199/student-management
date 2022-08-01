@@ -1,11 +1,12 @@
-import {repository, Filter} from '@loopback/repository';
-import {param, HttpErrors, get} from '@loopback/rest';
-import {UniversityClassRepository, StudentRepository} from '../repositories';
-import {Student} from '../models/student.model';
-import {authenticate} from '@loopback/authentication';
-import {AuthenticationStrategyConstants} from '../keys';
-import {authorize} from '@loopback/authorization';
-import {RoleEnum} from '../models';
+import { repository, Filter } from '@loopback/repository';
+import { param, HttpErrors, get } from '@loopback/rest';
+import { UniversityClassRepository, StudentRepository } from '../repositories';
+import { Student } from '../models/student.model';
+import { authenticate } from '@loopback/authentication';
+import { AuthenticationStrategyConstants } from '../keys';
+import { authorize } from '@loopback/authorization';
+import { RoleEnum } from '../models';
+import { verifyStudentBelongsToClassVoter } from '../services';
 
 export class ClassStudentController {
   constructor(
@@ -16,21 +17,22 @@ export class ClassStudentController {
   ) {}
 
   // TODO:
-  // - student monitor must belongs to the class with the given universityClassId.
-  // - teacher must teach the class with the given universityClassId.
+  // - teacher must teach the class with the given id (class).
   @authenticate(AuthenticationStrategyConstants.JWT)
-  @authorize({allowedRoles: [RoleEnum.ADMIN, RoleEnum.TEACHER, RoleEnum.STUDENT_MONITOR]})
-  @get('/classes/{universityClassId}/students')
+  @authorize({
+    allowedRoles: [RoleEnum.ADMIN, RoleEnum.TEACHER, RoleEnum.STUDENT_MONITOR],
+    voters: [verifyStudentBelongsToClassVoter],
+  })
+  @get('/classes/{id}/students')
   async getAllStudents(
-    @param.path.number('universityClassId') universityClassId: number,
+    @param.path.number('id') id: number,
     @param.filter(Student) filter?: Filter<Omit<Student, 'universityClassId'>>,
   ): Promise<Student[]> {
-    const isExistedClass = await this.universityClassRepository.exists(universityClassId)
+    const isExistedClass = await this.universityClassRepository.exists(id);
     if (!isExistedClass) {
-      throw new HttpErrors.NotFound(`There is no class that \`id\` is equal to \`${universityClassId}\``)
+      throw new HttpErrors.NotFound('Class not found.');
     }
 
-    return this.universityClassRepository.students(universityClassId).find(filter)
+    return this.universityClassRepository.students(id).find(filter);
   }
-
 }

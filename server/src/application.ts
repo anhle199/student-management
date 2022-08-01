@@ -10,13 +10,13 @@ import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
 import {MySequence} from './sequence';
 
-// IMPORT FOR APPLYING AUTHENTICATION
+// IMPORT FOR APPLYING AUTHENTICATION AND AUTHORIZATION
 import {AuthenticationComponent} from '@loopback/authentication';
 import {
   JWTAuthenticationComponent,
   TokenServiceBindings,
 } from '@loopback/authentication-jwt';
-import {JWTService} from './services';
+import {JWTService, AuthorizationProvider} from './services';
 import {AccountService} from './services/account.service';
 import {
   TokenServiceConstants,
@@ -29,12 +29,6 @@ import {
   AuthorizationComponent,
   AuthorizationTags
 } from '@loopback/authorization';
-// ----------------------------------------
-
-// IMPORT FOR APPLYING AUTHORIZATION
-import {AuthorizationProvider} from './providers';
-// ----------------------------------------
-
 
 export {ApplicationConfig};
 

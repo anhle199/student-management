@@ -1,98 +1,87 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {Filter, FilterExcludingWhere, repository} from '@loopback/repository';
-import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody, response} from '@loopback/rest';
-import {AuthenticationStrategyConstants} from '../keys';
-import {RoleEnum} from '../models';
-import {UniversityClass} from '../models/university-class.model';
-import {UniversityClassRepository} from '../repositories';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject } from '@loopback/core';
+import { Filter, FilterExcludingWhere, repository } from '@loopback/repository';
+import {
+  del,
+  get,
+  getModelSchemaRef,
+  HttpErrors,
+  param,
+  put,
+  post,
+  requestBody,
+  RestBindings,
+  Response,
+} from '@loopback/rest';
+import { AuthenticationStrategyConstants } from '../keys';
+import { RoleEnum } from '../models';
+import { UniversityClass } from '../models/university-class.model';
+import { UniversityClassRepository } from '../repositories';
+import { responseHandler, responseMessage } from '../utilities';
 
 @authenticate(AuthenticationStrategyConstants.JWT)
-@authorize({allowedRoles: [RoleEnum.ADMIN]})
+@authorize({ allowedRoles: [RoleEnum.ADMIN] })
 export class UniversityClassController {
   constructor(
     @repository(UniversityClassRepository)
     protected universityClassRepository: UniversityClassRepository,
-  ) { }
+    @inject(RestBindings.Http.RESPONSE)
+    protected response: Response,
+  ) {}
 
   @post('/classes')
-  @response(201, {
-    description: 'Adds a new class into the database.',
-    content: {
-      'application/json': {
-        schema: getModelSchemaRef(UniversityClass),
-      },
-    },
-  })
   async create(
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(UniversityClass, {
-            title: "NewUniversityClass",
+            title: 'NewUniversityClass',
             exclude: ['id'],
-          })
+          }),
         },
       },
     })
-    universityClass: Omit<UniversityClass, 'id'>
-  ): Promise<UniversityClass> {
+    universityClass: Omit<UniversityClass, 'id'>,
+  ): Promise<Response> {
     // Find by class name ('name' property).
     // Returns an UniversityClass object if the given class name has already existed;
     // otherwise returns null
     const foundClass = await this.universityClassRepository.findOne({
-      where: {name: universityClass.name},
+      where: { name: universityClass.name },
     });
 
     if (foundClass !== null) {
-      throw new HttpErrors.Conflict("This class has already existed.");
+      throw new HttpErrors.Conflict(responseMessage.ERROR.CONFLICT);
     }
 
-    return this.universityClassRepository.create(universityClass);
+    const createdUniversityClass = await this.universityClassRepository.create(universityClass);
+    return responseHandler.handleSuccess(this.response, createdUniversityClass);
   }
 
   @get('/classes')
-  @response(200, {
-    description: 'Gets a list of classes (all).',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'array',
-          items: getModelSchemaRef(UniversityClass, {includeRelations: true}),
-        }
-      }
-    }
-  })
-  async find(
-    @param.filter(UniversityClass) filter?: Filter<UniversityClass>
-  ): Promise<UniversityClass[]> {
+  async find(@param.filter(UniversityClass) filter?: Filter<UniversityClass>): Promise<UniversityClass[]> {
     return this.universityClassRepository.find(filter);
   }
 
   // TODO: teacher must teach the class with the given universityClassId.
-  @authorize({allowedRoles: [RoleEnum.ADMIN, RoleEnum.TEACHER]})
+  @authorize({ allowedRoles: [RoleEnum.ADMIN, RoleEnum.TEACHER] })
   @get('/classes/{id}')
-  @response(200, {
-    description: 'Gets a specific class by the given class ID.',
-    content: {
-      'application/json': {
-        schema: getModelSchemaRef(UniversityClass),
-      },
-    },
-  })
   async findById(
     @param.path.number('id') id: number,
-    @param.filter(UniversityClass, {exclude: 'where'}) filter?: FilterExcludingWhere<UniversityClass>,
+    @param.filter(UniversityClass, { exclude: 'where' }) filter?: FilterExcludingWhere<UniversityClass>,
   ): Promise<UniversityClass> {
+    const isExisted = await this.universityClassRepository.exists(id);
+    if (!isExisted) {
+      throw new HttpErrors.NotFound('University class not found.');
+    }
+
     return this.universityClassRepository.findById(id, filter);
   }
 
   // TODO: teacher must teach the class with the given universityClassId.
-  @authorize({allowedRoles: [RoleEnum.ADMIN, RoleEnum.TEACHER]})
-  @patch('/classes/{id}')
-  @response(204, {
-    description: 'Updates an existing UniversityClass with property/name pairs.',
-  })
+  @authorize({ allowedRoles: [RoleEnum.ADMIN, RoleEnum.TEACHER] })
+  @put('/classes/{id}')
   async updateById(
     @param.path.number('id') id: number,
     @requestBody({
@@ -101,18 +90,21 @@ export class UniversityClassController {
           schema: getModelSchemaRef(UniversityClass, {
             partial: true,
             exclude: ['id'],
-          })
+          }),
         },
       },
-    }) universityClass: Omit<UniversityClass, 'id'>
+    })
+    universityClass: Omit<UniversityClass, 'id'>,
   ): Promise<void> {
-    if ('name' in universityClass) {
+    if (!universityClass.name) {
       // find a class by `name`
-      const foundClass = await this.universityClassRepository.findOne({where: {name: universityClass.name}});
+      const foundClass = await this.universityClassRepository.findOne({
+        where: { name: universityClass.name }
+      });
 
       // The given class name has already existed.
       if (foundClass !== null && foundClass.id !== id) {
-        throw new HttpErrors.Conflict("This class name has already existed");
+        throw new HttpErrors.Conflict('This class name has already existed');
       }
 
       await this.universityClassRepository.updateById(id, universityClass);
@@ -120,21 +112,18 @@ export class UniversityClassController {
   }
 
   @del('/classes/{id}')
-  @response(204, {
-    description: 'Delete a class by the given class id.'
-  })
   async deleteById(@param.path.number('id') id: number): Promise<void> {
-    const isExistedClass = await this.universityClassRepository.exists(id)
+    const isExistedClass = await this.universityClassRepository.exists(id);
     if (!isExistedClass) {
-      throw new HttpErrors.NotFound("University class not found.");
+      throw new HttpErrors.NotFound('University class not found.');
     }
 
     // only executable on PostgreSQL.
     // returns object: { affectedRows: number, count: number, rows: [] }.
     await this.universityClassRepository.execute(
-      "update student set universityclassid = null where universityclassid = $1",
+      'update student set universityclassid = null where universityclassid = $1;',
       [id],
-    )
+    );
 
     await this.universityClassRepository.deleteById(id);
   }

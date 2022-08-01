@@ -28,7 +28,7 @@ RUN yarn clean && yarn build
 
 # Remove all development dependencies.
 RUN npm prune --production
-RUN yarn install --production
+#RUN yarn install --production
 
 # ------------------------- End of building phase -------------------------
 

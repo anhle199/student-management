@@ -21,9 +21,9 @@ export class Enrollment extends Entity {
   courseId?: number;
 
   @property({
-    type: 'string',
+    type: 'number',
   })
-  studentId?: string;
+  studentId?: number;
 
   constructor(data?: Partial<Enrollment>) {
     super(data);

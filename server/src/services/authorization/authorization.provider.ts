@@ -1,11 +1,11 @@
 import {Provider} from '@loopback/core';
 import {Authorizer, AuthorizationContext, AuthorizationMetadata, AuthorizationDecision} from '@loopback/authorization';
-import {Role} from '../models/role.model';
+import {Role} from '../../models/role.model';
 
 export class AuthorizationProvider implements Provider<Authorizer> {
   constructor() {}
 
-  value(): Authorizer {
+  value() {
     return this.authorize.bind(this);
   }
 
